@@ -13,14 +13,25 @@ int main(void)
     int arr0[]{0,1,2,3};
     SglLinkList<int> la(arr0,4);
     la.InsertElem(x);
+    la.SetElem(1,55);
     la.InsertElem(1,88);
     la.Traverse(Write);
+    cout<<endl<<la.LocateElem(99)<<" "<<la.LocateElem(88)<<" "<<la.LocateElem(2);
+    la.GetElem(6,x);
+
+    cout<<endl<<x;
     cout<<"endend"<<endl;
-    SglLinkList<int> lb;
+    la.Traverse(Write);
+    cout<<endl;
+    SglLinkList<int> lb=la;
+    cout<<lb.IsEmpty()<<" "<<la.IsEmpty()<<endl;
+    lb.reversal();               //reversalËÆºõ»¹ÓÐbug
+    lb.Traverse(Write);
+    cout<<endl;
   /*  lb = la;
     lb.Traverse(Write);*/
-  la.reversal();
-  la.Traverse(Write);
+  //la.reversal();
+  //la.Traverse(Write);
 
 
 

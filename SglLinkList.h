@@ -48,7 +48,7 @@ SglLinkList<ElemType>::SglLinkList()
 
 template <class ElemType>
 SglLinkList<ElemType>::SglLinkList(ElemType v[], int n)
-// 操作结果：根据数组v中的元素，构造双向循环链表
+// 操作结果：根据数组v中的元素，构造循环链表
 {
     SglNode<ElemType> *p;
 	p = head =  new SglNode<ElemType>;	// 构造头结点 
@@ -80,7 +80,7 @@ int SglLinkList<ElemType>::GetLength() const
 	return length;
 }
 
-//bug
+
 template <class ElemType>
 bool SglLinkList<ElemType>::IsEmpty() const
 // 操作结果：如循环链表为空，则返回true，否则返回false
@@ -109,13 +109,17 @@ void SglLinkList<ElemType>::Traverse(void (*Visit)(const ElemType &)) const
     (*Visit)(p->data);
 }
 
-//bug
+
 template <class ElemType>
 int SglLinkList<ElemType>::LocateElem(const ElemType &e)
 // 操作结果：返回指定元素在循环链表中第一次出现的序号，如果不存在返回0 
 {
-    SglNode<ElemType> *p = head->next;
+    SglNode<ElemType> *p = head;//不带头节点
     int count=1;
+    if(p->data==e)
+        return count;
+    p=p->next;
+    count++;
 	while (p != head && p->data != e) {
 	    count++;
 		p = p->next;
@@ -132,8 +136,11 @@ Status SglLinkList<ElemType>::reversal() {
         return SUCCESS;
     }
 
-    SglNode<ElemType>* pre = nullptr;
-    SglNode<ElemType>* cur = head; //头节点不参与翻转，防止出现环形链表
+    SglNode<ElemType>* cur = head;
+     SglNode<ElemType>* pre = cur;
+     while(pre->next!=head){
+         pre=pre->next;
+     }
     SglNode<ElemType>* fut = nullptr;
 
     while(cur->next!=head){
@@ -143,18 +150,17 @@ Status SglLinkList<ElemType>::reversal() {
         cur = fut;
     }
     cur->next = pre;    //当 cur 指向最后一个节点的话，由于已经退出了 while 循环，所以需要单独处理
-    head->next = cur;   //头指针指向最后一个节点，把原来的NULL 换成最后一个节点的地址，使之成环
-
-    //head->next = pre;
+    head = cur;   //头指针指向最后一个节点，把原来的NULL 换成最后一个节点的地址，使之成环
+return SUCCESS;
 }
 
-//bug
+
 template <class ElemType>
 Status SglLinkList<ElemType>::GetElem(int i, ElemType &e) const
 // 操作结果：当循环链表存在第i个元素时，用e返回其值，函数返回ENTRY_FOUND,
 //	否则函数返回NOT_PRESENT
 {
-    SglNode<ElemType> *p = head->next;
+    SglNode<ElemType> *p = head;
     int count;
 	if (i < 1 || i > length)		// i范围错
 		return NOT_PRESENT;				
@@ -166,7 +172,7 @@ Status SglLinkList<ElemType>::GetElem(int i, ElemType &e) const
 	}
 }
 
-//bug
+
 template <class ElemType>
 Status SglLinkList<ElemType>::SetElem(int i, const ElemType &e)
 // 操作结果：将循环链表的第i个位置的元素赋值为e,
@@ -198,7 +204,7 @@ Status SglLinkList<ElemType>::DeleteElem(int i, ElemType &e)
 	else	{	// i合法
 		for (count = 1; count < i; count++)
 		  p = p->next;	// p指向第i个结点
-		e = p->data;				// 用e返回被删结点元素值	
+		e = p->data;				// 用e返回被删结点元素值
 		length--;					// 删除成功后元素个数减1 
 		delete p;				    // 释放被删结点
 		return SUCCESS;
@@ -279,38 +285,79 @@ Status SglLinkList<ElemType>::InsertElem(const ElemType &e)
     return SUCCESS;
 }
 
-//bug
+
 template <class ElemType>
 SglLinkList<ElemType>::SglLinkList(const SglLinkList<ElemType> &la)
 // 操作结果：复制构造函数，由单链表la构造新单链表
 {
     int laLength = la.GetLength();	// 取被复制单链表的长度
+    SglNode<ElemType> *p, *q;
     ElemType e;
     head = new SglNode<ElemType>;		// 构造头指针
-    assert(head);                   // 构造头指针失败，终止程序运行 
-    length = 0;						// 初始化元素个数
+    assert(head);                   // 构造头指针失败，终止程序运行
+    if(laLength==0) {head->data=NULL;head->next=head;}
+    else{
+        p=head;q=la.head;
+        p->data=q->data;
+        for (int i = 2; i <= laLength; i++)		// 复制数据元素
+            {
+                p->next = new SglNode<ElemType>(q->next->data, p);
+                assert(p->next);                // 构造元素结点失败，终止程序运行
+                p = p->next;
+                q=q->next;
+        }
+        length=laLength;
+        p->next = head;	                    //尾结点的next指向头结点
 
-    for (int i = 1; i <= laLength; i++)	{	// 复制数据元素
-        la.GetElem(i, e);	       // 取出第i个元素的值放在e中 
-        InsertElem(e);		       // 将e插入到当前单链表的表尾 
     }
 }
 
-//有 bug，还没修
+////有 bug，还没修
+//template <class ElemType>
+//SglLinkList<ElemType> &SglLinkList<ElemType>::operator =(const SglLinkList<ElemType> &la)
+//// 操作结果：重载赋值运算符，将单链表la赋值给当前单链表
+//{
+//	if (&la != this)	{
+//		int laLength = la.GetLength();// 取被赋值单链表的长度
+//		ElemType e;
+//		Clear();							// 清空当前单链表
+//		for (int i = 1; i <= laLength; i++)		{
+//			la.GetElem(i, e);		    // 取出第i个元素的值放在e中
+//			InsertElem(e);		            // 将e插入到当前单链表的表尾
+//		}
+//	}
+//	return *this;
+//}
 template <class ElemType>
-SglLinkList<ElemType> &SglLinkList<ElemType>::operator =(const SglLinkList<ElemType> &la)
-// 操作结果：重载赋值运算符，将单链表la赋值给当前单链表
+SglLinkList<ElemType>& SglLinkList<ElemType>::operator=(const SglLinkList<ElemType> &la)
 {
-	if (&la != this)	{
-		int laLength = la.GetLength();// 取被赋值单链表的长度
-		ElemType e;
-		Clear();							// 清空当前单链表
-		for (int i = 1; i <= laLength; i++)		{
-			la.GetElem(i, e);		    // 取出第i个元素的值放在e中
-			InsertElem(e);		            // 将e插入到当前单链表的表尾
-		}
-	}
-	return *this;
+    if (this != &la) {
+
+        Clear();
+
+        int laLength = la.GetLength();
+        SglNode<ElemType> *p, *q;
+        ElemType e;
+        head = new SglNode<ElemType>;
+        assert(head);
+        if (laLength == 0) {
+            head->data = NULL;
+            head->next = head;
+        } else {
+            p = head;
+            q = la.head;
+            p->data = q->data;
+            for (int i = 2; i <= laLength; i++) {
+                p->next = new SglNode<ElemType>(q->next->data, p);
+                assert(p->next);
+                p = p->next;
+                q = q->next;
+            }
+            length = laLength;
+            p->next = head;
+        }
+    }
+    return *this;
 }
 
 
